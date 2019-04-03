@@ -1,13 +1,14 @@
-package com.mewin.WGRegionEvents;
+package de.ilovejava.wgevents;
 
-import com.mewin.WGRegionEvents.events.RegionEnterEvent;
-import com.mewin.WGRegionEvents.events.RegionEnteredEvent;
-import com.mewin.WGRegionEvents.events.RegionLeaveEvent;
-import com.mewin.WGRegionEvents.events.RegionLeftEvent;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+
+import de.ilovejava.wgevents.listener.RegionEnterEvent;
+import de.ilovejava.wgevents.listener.RegionEnteredEvent;
+import de.ilovejava.wgevents.listener.RegionLeaveEvent;
+import de.ilovejava.wgevents.listener.RegionLeftEvent;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -17,18 +18,14 @@ import org.bukkit.event.player.*;
 
 import java.util.*;
 
-/**
- *
- * @author mewin
- */
-public class WGRegionEventsListener implements Listener
+public class WGEventsListener implements Listener
 {
     private WorldGuardPlugin wgPlugin;
-    private WGRegionEventsPlugin plugin;
+    private WGEvents plugin;
     
     private Map<Player, Set<ProtectedRegion>> playerRegions;
     
-    public WGRegionEventsListener(WGRegionEventsPlugin plugin, WorldGuardPlugin wgPlugin)
+    public WGEventsListener(WGEvents plugin, WorldGuardPlugin wgPlugin)
     {
         this.plugin = plugin;
         this.wgPlugin = wgPlugin;
@@ -37,15 +34,15 @@ public class WGRegionEventsListener implements Listener
     }
     
     @EventHandler
-    public void onPlayerKick(PlayerKickEvent e)
+    public void onKick(PlayerKickEvent e)
     {
         Set<ProtectedRegion> regions = playerRegions.remove(e.getPlayer());
         if (regions != null)
         {
             for(ProtectedRegion region : regions)
             {
-                RegionLeaveEvent leaveEvent = new RegionLeaveEvent(region, e.getPlayer(), MovementWay.DISCONNECT, e);
-                RegionLeftEvent leftEvent = new RegionLeftEvent(region, e.getPlayer(), MovementWay.DISCONNECT, e);
+                RegionLeaveEvent leaveEvent = new RegionLeaveEvent(region, e.getPlayer(), WGEventsMovment.DISCONNECT, e);
+                RegionLeftEvent leftEvent = new RegionLeftEvent(region, e.getPlayer(), WGEventsMovment.DISCONNECT, e);
 
                 plugin.getServer().getPluginManager().callEvent(leaveEvent);
                 plugin.getServer().getPluginManager().callEvent(leftEvent);
@@ -54,15 +51,15 @@ public class WGRegionEventsListener implements Listener
     }
     
     @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent e)
+    public void onQuit(PlayerQuitEvent e)
     {
         Set<ProtectedRegion> regions = playerRegions.remove(e.getPlayer());
         if (regions != null)
         {
             for(ProtectedRegion region : regions)
             {
-                RegionLeaveEvent leaveEvent = new RegionLeaveEvent(region, e.getPlayer(), MovementWay.DISCONNECT, e);
-                RegionLeftEvent leftEvent = new RegionLeftEvent(region, e.getPlayer(), MovementWay.DISCONNECT, e);
+                RegionLeaveEvent leaveEvent = new RegionLeaveEvent(region, e.getPlayer(), WGEventsMovment.DISCONNECT, e);
+                RegionLeftEvent leftEvent = new RegionLeftEvent(region, e.getPlayer(), WGEventsMovment.DISCONNECT, e);
 
                 plugin.getServer().getPluginManager().callEvent(leaveEvent);
                 plugin.getServer().getPluginManager().callEvent(leftEvent);
@@ -71,30 +68,30 @@ public class WGRegionEventsListener implements Listener
     }
     
     @EventHandler
-    public void onPlayerMove(PlayerMoveEvent e)
+    public void onMove(PlayerMoveEvent e)
     {
-        e.setCancelled(updateRegions(e.getPlayer(), MovementWay.MOVE, e.getTo(), e));
+        e.setCancelled(updateRegions(e.getPlayer(), WGEventsMovment.MOVE, e.getTo(), e));
     }
     
     @EventHandler
-    public void onPlayerTeleport(PlayerTeleportEvent e)
+    public void onTeleport(PlayerTeleportEvent e)
     {
-        e.setCancelled(updateRegions(e.getPlayer(), MovementWay.TELEPORT, e.getTo(), e));
+        e.setCancelled(updateRegions(e.getPlayer(), WGEventsMovment.TELEPORT, e.getTo(), e));
     }
     
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent e)
+    public void onJoin(PlayerJoinEvent e)
     {
-        updateRegions(e.getPlayer(), MovementWay.SPAWN, e.getPlayer().getLocation(), e);
+        updateRegions(e.getPlayer(), WGEventsMovment.SPAWN, e.getPlayer().getLocation(), e);
     }
     
     @EventHandler
-    public void onPlayerRespawn(PlayerRespawnEvent e)
+    public void onRespawn(PlayerRespawnEvent e)
     {
-        updateRegions(e.getPlayer(), MovementWay.SPAWN, e.getRespawnLocation(), e);
+        updateRegions(e.getPlayer(), WGEventsMovment.SPAWN, e.getRespawnLocation(), e);
     }
     
-    private synchronized boolean updateRegions(final Player player, final MovementWay movement, Location to, final PlayerEvent event)
+    private synchronized boolean updateRegions(final Player player, final WGEventsMovment movement, Location to, final PlayerEvent event)
     {
         Set<ProtectedRegion> regions;
         Set<ProtectedRegion> oldRegions;
@@ -120,7 +117,7 @@ public class WGRegionEventsListener implements Listener
         HashSet<ProtectedRegion> appRegions = new HashSet<ProtectedRegion>(
                 rm.getApplicableRegions(to).getRegions());
         ProtectedRegion globalRegion = rm.getRegion("__global__");
-        if (globalRegion != null) // just to be sure
+        if (globalRegion != null)
         {
             appRegions.add(globalRegion);
         }

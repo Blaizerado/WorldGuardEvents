@@ -1,15 +1,11 @@
-package com.mewin.WGRegionEvents;
+package de.ilovejava.wgevents;
 
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/**
- *
- * @author mewin
- */
-public class WGRegionEventsPlugin extends JavaPlugin {
-    private WGRegionEventsListener listener;
+public class WGEvents extends JavaPlugin {
+    private WGEventsListener listener;
     private WorldGuardPlugin wgPlugin;
     
     @Override
@@ -18,12 +14,11 @@ public class WGRegionEventsPlugin extends JavaPlugin {
         wgPlugin = getWGPlugin();
         if (wgPlugin == null)
         {
-            getLogger().warning("Could not find World Guard, disabling.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
         
-        listener = new WGRegionEventsListener(this, wgPlugin);
+        listener = new WGEventsListener(this, wgPlugin);
         
         getServer().getPluginManager().registerEvents(listener, wgPlugin);
     }
